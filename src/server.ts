@@ -1,5 +1,5 @@
-import http, { IncomingMessage, ServerResponse } from 'http';
-import {
+import http, { type ServerResponse } from 'node:http';
+import type {
 	ErrorHandler,
 	Middleware,
 	RequestHandler,
@@ -7,7 +7,7 @@ import {
 } from './types';
 
 export class Server {
-	private routes: { [key: string]: RequestHandler } = {};
+	private routes: Map<string, RequestHandler> = new Map();
 	private middlewares: Middleware[] = [];
 	private errorHandlers: ErrorHandler[] = [];
 
@@ -23,7 +23,7 @@ export class Server {
 					try {
 						handler(req, res);
 					} catch (err) {
-						this.handleError(err, req, res, next);
+						if (err instanceof Error) this.handleError(err, req, res, next);
 					}
 				}
 			};
@@ -31,7 +31,7 @@ export class Server {
 		};
 	}
 	private handleError(
-		err: any,
+		err: Error,
 		req: RequestWithBody,
 		res: ServerResponse,
 		next: (err?: Error) => void,
@@ -54,11 +54,11 @@ export class Server {
 	}
 
 	get(path: string, handler: RequestHandler) {
-		this.routes[`GET ${path}`] = this.applyMiddlewares(handler);
+		this.routes.set(`GET ${path}`, this.applyMiddlewares(handler));
 	}
 
 	post(path: string, handler: RequestHandler) {
-		this.routes[`POST ${path}`] = this.applyMiddlewares(handler);
+		this.routes.set(`POST ${path}`, this.applyMiddlewares(handler));
 	}
 
 	listen(port: number) {
@@ -67,11 +67,10 @@ export class Server {
 				const { pathname, searchParams } = new URL(
 					`http://${process.env.HOST ?? 'localhost'}${req.url}`,
 				);
-				console.log({ pathname, searchParams });
 				const key = `${req.method} ${pathname}`;
-
-				if (this.routes[key]) {
-					this.routes[key](req, res);
+				const _route = this.routes.get(key);
+				if (_route) {
+					_route.call(null, req, res);
 				} else {
 					res.statusCode = 404;
 					res.end('Not found');
