@@ -96,12 +96,14 @@ export class Server {
 			const matchResult = regex.exec(key);
 
 			if (matchResult) {
-				const params: { [key: string]: string } = {};
 				const keys = route.match(/:\w+/g) || []; // Get variable names from the route
-
-				keys.forEach((key, index) => {
-					params[key.substring(1)] = matchResult[index + 1]; // Extract the variable value
-				});
+				const params = keys.reduce(
+					(p, c, index) => ({
+						...p,
+						[c.substring(1)]: matchResult[index + 1],
+					}),
+					{} as Record<string, string>,
+				);
 
 				return { ...this.routes.get(route), params }; // Return the handler and params if matched
 			}
