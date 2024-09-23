@@ -16,6 +16,11 @@ export class Server {
 	private middlewares: Middleware[] = [];
 	private errorHandlers: ErrorHandler[] = [];
 
+	/**
+	 * Applies middlewares to a request handler.
+	 * @param handler The request handler to which middlewares will be applied.
+	 * @returns A new request handler that applies the middlewares.
+	 */
 	private applyMiddlewares(handler: RequestHandler): RequestHandler {
 		return (req, res) => {
 			let index = 0;
@@ -36,6 +41,13 @@ export class Server {
 		};
 	}
 
+	/**
+	 * Handles errors that occur during request processing.
+	 * @param err The error that occurred.
+	 * @param req The request object.
+	 * @param res The response object.
+	 * @param next The next middleware function.
+	 */
 	private handleError(
 		err: Error,
 		req: Request,
@@ -51,6 +63,12 @@ export class Server {
 		}
 	}
 
+	/**
+	 * Registers a new route with its handler.
+	 * @param path The path of the route.
+	 * @param method The HTTP method for the route (GET, POST, etc.).
+	 * @param handler The request handler for the route.
+	 */
 	private register(path: string, method: Method, handler: RequestHandler) {
 		const key = `${method} ${path}`;
 		const regexString = key.replace(/:\w+/g, '([^/]+)'); // Replace path variables with regex
@@ -64,6 +82,12 @@ export class Server {
 		this.routeToRegex.set(key, pattern);
 	}
 
+	/**
+	 * Matches an incoming URL against the registered routes.
+	 * @param url The URL to match.
+	 * @param method The HTTP method of the request.
+	 * @returns An object containing the matched route's handler and parameters, or null if no match is found.
+	 */
 	private matchRoute(url: string, method: string = 'GET') {
 		const key = `${method} ${url}`;
 
@@ -86,11 +110,18 @@ export class Server {
 		return null; // Return null if no route matched
 	}
 
+	/**
+	 * Prints all registered routes to the console.
+	 */
 	printRoutes() {
 		for (const [, { method, path }] of this.routes.entries())
 			console.log(`[${method}] ${path}`);
 	}
 
+	/**
+	 * Registers middleware or error handler.
+	 * @param middleware The middleware or error handler to register.
+	 */
 	use(middleware: Middleware | ErrorHandler) {
 		if (middleware.length === 4) {
 			this.errorHandlers.push(middleware as ErrorHandler);
@@ -99,25 +130,50 @@ export class Server {
 		}
 	}
 
+	/**
+	 * Handles the request registration for a specific HTTP method.
+	 * @param path The path of the route.
+	 * @param method The HTTP method for the route (GET, POST, etc.).
+	 * @param handler The request handler for the route.
+	 */
 	private handleRequest(path: string, method: Method, handler: RequestHandler) {
 		const key = `${method} ${path}`;
 		this.register(path, method, handler);
 	}
 
+	/**
+	 * Registers a GET route with its handler.
+	 * @param path The path of the route.
+	 * @param handler The request handler for the route.
+	 */
 	get(path: string, handler: RequestHandler) {
 		this.handleRequest(path, 'GET', handler);
 	}
 
+	/**
+	 * Registers a POST route with its handler.
+	 * @param path The path of the route.
+	 * @param handler The request handler for the route.
+	 */
 	post(path: string, handler: RequestHandler) {
 		this.handleRequest(path, 'POST', handler);
 	}
 
+	/**
+	 * Registers a PUT route with its handler.
+	 * @param path The path of the route.
+	 * @param handler The request handler for the route.
+	 */
 	put(path: string, handler: RequestHandler) {
 		this.handleRequest(path, 'PUT', handler);
 	}
 
+	/**
+	 * Starts the server and listens on the specified port.
+	 * @param port The port on which the server will listen.
+	 */
 	listen(port: number) {
-		//  print routes
+		// Print routes
 		this.printRoutes();
 		http
 			.createServer((req, res) => {
