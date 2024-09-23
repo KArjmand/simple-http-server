@@ -1,23 +1,22 @@
 import { IncomingMessage, ServerResponse } from 'http';
 
-export interface RequestWithBody extends IncomingMessage {
+export interface Request extends IncomingMessage {
 	body?: Record<string, unknown>;
+	params?: Record<string, string>;
+	query: Record<string, string>;
 }
-
-export type RequestHandler = (
-	req: RequestWithBody,
-	res: ServerResponse,
-) => void;
+export type Method = 'GET' | 'PUT' | 'POST';
+export type RequestHandler = (req: Request, res: ServerResponse) => void;
 
 export type Middleware = (
-	req: RequestWithBody,
+	req: Request,
 	res: ServerResponse,
 	next: (err?: Error) => void,
 ) => void;
 
 export type ErrorHandler = (
 	err: Error,
-	req: RequestWithBody,
+	req: Request,
 	res: ServerResponse,
 	next: (err?: Error) => void,
 ) => void;

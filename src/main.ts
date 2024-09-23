@@ -26,11 +26,18 @@ app.post('/echo', (req, res) => {
 	res.end(JSON.stringify(req.body));
 });
 
-app.post('/users', (req, res) => {
+app.post('/users/new', (req, res) => {
 	// Handle POST request to /users
 	res.statusCode = 201;
 	res.setHeader('Content-Type', 'application/json');
 	res.end(JSON.stringify({ id: 1, name: 'John Doe' }));
+});
+
+app.post('/users/:id/add/:name', (req, res) => {
+	// Handle POST request to /users
+	res.statusCode = 201;
+	res.setHeader('Content-Type', 'application/json');
+	res.end(JSON.stringify({ params: req.params, query: req.query }));
 });
 
 app.listen(3000);
